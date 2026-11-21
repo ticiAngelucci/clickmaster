@@ -1,0 +1,9 @@
+{
+  "name": "com.clickmaster.host",
+  "description": "Click Master Native Messaging Host — system cursor control",
+  "path": "HOST_PATH_PLACEHOLDER",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://EXTENSION_ID_PLACEHOLDER/"
+  ]
+}

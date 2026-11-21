@@ -1,0 +1,12 @@
+{
+  "name": "click-master",
+  "version": "1.0.0",
+  "description": "AI-Powered Gesture-Controlled Chrome Extension",
+  "type": "module",
+  "scripts": {
+    "start": "echo 'Load the extension in Chrome via chrome://extensions'"
+  },
+  "keywords": ["chrome-extension", "mediapipe", "gestures", "hand-tracking"],
+  "author": "Click Master Team",
+  "license": "MIT"
+}

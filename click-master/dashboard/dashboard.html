@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Click Master</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo">
+        <img src="../assets/logo.png" alt="Click Master" class="logo-img">
+        <div>
+          <div class="logo-text">CLICK MASTER</div>
+          <div class="logo-sub">Tu mano manda</div>
+        </div>
+      </div>
+      <div class="status-bar">
+        <div class="status-item" id="camera-status">
+          <span class="dot offline"></span>
+          <span>Cámara</span>
+        </div>
+        <div class="status-item" id="tracking-status">
+          <span class="dot offline"></span>
+          <span>Tracking</span>
+        </div>
+        <div class="status-item" id="mode-status">
+          <span class="mode-badge">MOUSE</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-guide" class="btn-icon" title="Guía de gestos">?</button>
+        <button id="btn-settings" class="btn-icon" title="Configuración">⚙</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="camera-section">
+        <div class="camera-wrapper" id="camera-wrapper">
+          <video id="webcam" autoplay playsinline muted></video>
+          <canvas id="overlay"></canvas>
+          <div id="cursor" class="virtual-cursor"></div>
+          <div id="gesture-indicator" class="gesture-indicator hidden"></div>
+          <div id="pause-overlay" class="pause-overlay hidden">
+            <div class="pause-text">CONTROL PAUSADO</div>
+            <button id="btn-resume" class="btn primary">Reanudar</button>
+          </div>
+          <button id="btn-minimize-cam" class="btn-min" title="Minimizar cámara">−</button>
+        </div>
+
+        <div class="activation">
+          <button id="btn-start" class="btn-start">START CLICK MASTER</button>
+          <button id="btn-stop" class="btn-stop" disabled>STOP</button>
+        </div>
+
+        <!-- Air Keyboard (visible only in KEYBOARD mode) -->
+        <div id="air-keyboard" class="air-keyboard hidden">
+          <div class="kb-header">
+            <span>AIR KEYBOARD</span>
+            <span id="kb-preview" class="kb-preview"></span>
+          </div>
+          <input id="kb-input" type="text" placeholder="Escribí acá con los gestos…" readonly>
+          <div class="kb-rows" id="kb-rows"></div>
+          <p class="kb-hint">☝️ Mové el índice para apuntar · 👌 Pinch para seleccionar la letra</p>
+        </div>
+        <div id="kb-selector" class="kb-selector"></div>
+
+        <div class="status-card" id="status-card">
+          <div class="status-label">CONTROL</div>
+          <div class="status-gesture" id="status-gesture">—</div>
+          <div class="status-action" id="status-action">Esperando mano…</div>
+          <div class="status-meta">
+            <span id="status-conf">Confianza: —</span>
+            <span id="status-mode">Modo: MOUSE</span>
+          </div>
+          <div class="status-page" id="status-page">Página controlada: ninguna</div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <h3>Modos</h3>
+        <div class="mode-cards">
+          <button class="mode-card active" data-mode="mouse">
+            <div class="mode-icon">🖱️</div>
+            <div class="mode-name">MOUSE</div>
+            <div class="mode-desc">Cursor, click y scroll</div>
+            <div class="mode-count">6 gestos</div>
+          </button>
+          <button class="mode-card" data-mode="magic">
+            <div class="mode-icon">✨</div>
+            <div class="mode-name">MAGIC</div>
+            <div class="mode-desc">Spotify, zoom, screenshot</div>
+            <div class="mode-count">7 gestos</div>
+          </button>
+          <button class="mode-card" data-mode="keyboard">
+            <div class="mode-icon">⌨️</div>
+            <div class="mode-name">KEYBOARD</div>
+            <div class="mode-desc">Teclado virtual</div>
+            <div class="mode-count">Apuntá + pinch</div>
+          </button>
+        </div>
+
+        <h3>Guía rápida</h3>
+        <div class="guide-list" id="guide-list"></div>
+      </aside>
+    </main>
+
+    <section class="debug-panel hidden" id="debug-panel">
+      <h3>DEBUG</h3>
+      <div class="debug-grid">
+        <div><label>Cámara</label><span id="dbg-camera">OFF</span></div>
+        <div><label>Tracking</label><span id="dbg-tracking">OFF</span></div>
+        <div><label>Mano</label><span id="dbg-hand">—</span></div>
+        <div><label>Gesto</label><span id="dbg-gesture">—</span></div>
+        <div><label>Confianza</label><span id="dbg-conf">—</span></div>
+        <div><label>Acción</label><span id="dbg-action">—</span></div>
+        <div><label>Pestaña</label><span id="dbg-tab">—</span></div>
+        <div><label>Modo</label><span id="dbg-mode">MOUSE</span></div>
+        <div><label>Cursor</label><span id="dbg-cursor">OFF</span></div>
+        <div><label>Zoom</label><span id="dbg-zoom">100%</span></div>
+      </div>
+      <div class="debug-history">
+        <label>Historial</label>
+        <ul id="dbg-history"></ul>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-item"><label>Último gesto</label><span id="last-gesture">—</span></div>
+      <div class="footer-item"><label>Última acción</label><span id="last-action">—</span></div>
+      <div class="footer-item"><label>FPS</label><span id="fps">0</span></div>
+      <div class="footer-item"><label>Sistema</label><span id="system-status">Listo</span></div>
+    </footer>
+
+    <div id="toasts" class="toasts"></div>
+  </div>
+
+  <!-- Onboarding -->
+  <div id="onboarding" class="overlay hidden">
+    <div class="modal">
+      <div class="modal-step" data-step="1">
+        <h2>WELCOME TO CLICK MASTER</h2>
+        <p class="tagline">Your hands. Your commands. One 🤘 Click Master.</p>
+        <p>Controlá Chrome con gestos de las manos. Mové el cursor, hacé click, scrolleá y cambiá de pestaña sin tocar el mouse.</p>
+        <button class="btn primary next-step">Continuar</button>
+      </div>
+      <div class="modal-step hidden" data-step="2">
+        <h2>Configurá la cámara</h2>
+        <p>Pulsa START y permití el acceso a la cámara. Colocá tu mano frente a ella hasta que veas los landmarks.</p>
+        <button class="btn primary next-step">Listo</button>
+      </div>
+      <div class="modal-step hidden" data-step="3">
+        <h2>Aprendé los gestos básicos</h2>
+        <div class="mini-guide">
+          <div>☝️ Índice → mover cursor</div>
+          <div>👌 Pinch → click izquierdo</div>
+          <div>✊ Puño → click derecho</div>
+        </div>
+        <button class="btn primary next-step">Siguiente</button>
+      </div>
+      <div class="modal-step hidden" data-step="4">
+        <h2>Calibración</h2>
+        <p>Probá los gestos. El sistema te dirá qué reconoce (sin ejecutar acciones reales).</p>
+        <div id="calib-result" class="calib-result">Esperando gesto…</div>
+        <button class="btn primary next-step">Listo</button>
+      </div>
+      <div class="modal-step hidden" data-step="5">
+        <h2>YOU ARE READY!</h2>
+        <p>Ya podés empezar a controlar Chrome con tus manos.</p>
+        <button id="btn-finish-onboarding" class="btn primary">START USING CLICK MASTER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gesture Guide Modal -->
+  <div id="guide-modal" class="overlay hidden">
+    <div class="modal wide">
+      <h2>GESTURE GUIDE</h2>
+      <div id="guide-content" class="guide-content"></div>
+      <button id="btn-close-guide" class="btn primary">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings-modal" class="overlay hidden">
+    <div class="modal">
+      <h2>Configuración</h2>
+      <label>Sensibilidad cursor <input type="range" id="set-cursor" min="0.1" max="1" step="0.1" value="0.35"></label>
+      <label>Velocidad scroll <input type="range" id="set-scroll" min="4" max="24" step="1" value="12"></label>
+      <label>Tiempo de estabilidad (ms) <input type="range" id="set-stability" min="150" max="600" step="50" value="300"></label>
+      <label><input type="checkbox" id="set-debug"> Mostrar panel DEBUG</label>
+      <label><input type="checkbox" id="set-landmarks" checked> Mostrar landmarks</label>
+      <div class="settings-actions">
+        <button id="btn-save-settings" class="btn primary">Guardar</button>
+        <button id="btn-close-settings" class="btn">Cerrar</button>
+        <button id="btn-restart-tutorial" class="btn">Repetir tutorial</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
